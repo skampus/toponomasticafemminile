@@ -1,0 +1,39 @@
+# query per python per conoscere il genere di un umano specificato
+# risultato in console
+# pip install sparqlwrapper
+# https://rdflib.github.io/sparqlwrapper/
+
+import sys
+from SPARQLWrapper import SPARQLWrapper, JSON
+
+endpoint_url = "https://query.wikidata.org/sparql"
+
+query = """SELECT ?human ?humanLabel ?article ?genderLabel ?geo WHERE 
+{
+  ?human rdfs:label "Sandro Pertini"@it .
+  ?human wdt:P31 wd:Q5.
+  ?human wdt:P21 ?gender .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language "it". }
+  OPTIONAL 
+  {
+    ?article schema:about ?human;
+      schema:inLanguage "it";
+      schema:isPartOf <https://it.wikipedia.org/>.
+  } 
+}
+LIMIT 100"""
+
+
+def get_results(endpoint_url, query):
+    user_agent = "WDQS-example Python/%s.%s" % (sys.version_info[0], sys.version_info[1])
+    # TODO adjust user agent; see https://w.wiki/CX6
+    sparql = SPARQLWrapper("https://query.wikidata.org/sparql", agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:76.0) Gecko/20100101 Firefox/76.0')
+    sparql.setQuery(query)
+    sparql.setReturnFormat(JSON)
+    return sparql.query().convert()
+
+
+results = get_results(endpoint_url, query)
+
+for result in results["results"]["bindings"]:
+    print(result)
